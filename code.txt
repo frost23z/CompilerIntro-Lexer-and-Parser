@@ -1,0 +1,22 @@
+##comment structure##
+##variable initialization(var_name, var_type)##
+
+a, b, c, d, x, y, z int;
+
+a = 15;
+b = 10;
+
+x = a + b;
+print x;
+y = a - b;
+print y;
+z = a * b;
+print z;
+
+f float;
+f = 1.5;
+print f;
+
+ch char;
+ch = 'Z';
+print c;
