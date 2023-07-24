@@ -28,7 +28,6 @@
 "+"                              { return PLUS;                                           /* printf("PLUS");            */ }
 "-"                              { return MINUS;                                          /* printf("MINUS");           */ }
 ";"                              { return SEMICOLON;                                      /* printf(" SEMICOLON");      */ }
-<<eof>>                          { return 0;                                              /* printf(" EOF");return 0;   */ }
 .                                { return yytext[0];                                      /* printf("ERROR");           */ }
 %%
 /***                   Function section                      ***/
