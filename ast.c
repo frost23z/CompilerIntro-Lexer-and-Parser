@@ -13,18 +13,18 @@ ASTNode *create_node(const char *node_name)
     return node;
 }
 
-ASTNode* create_child_node(const char* node_name, ASTNode* node)
+ASTNode *create_child_node(const char *node_name, ASTNode *node)
 {
     if (node->child == NULL)
     {
-        node->child = (ASTNode*)malloc(sizeof(ASTNode));
+        node->child = (ASTNode *)malloc(sizeof(ASTNode));
         *(node->child) = *create_node(node_name);
         node->no_of_children = 1;
     }
     else
     {
         node->no_of_children++;
-        node->child = (ASTNode*)realloc(node->child, node->no_of_children * sizeof(ASTNode));
+        node->child = (ASTNode *)realloc(node->child, node->no_of_children * sizeof(ASTNode));
         node->child[node->no_of_children - 1] = *create_node(node_name);
     }
     return &(node->child[node->no_of_children - 1]);
@@ -39,21 +39,21 @@ void print_ast_node(ASTNode *node, int indent)
 
     for (int i = 0; i < indent; i++)
     {
-        printf("    ");
+        printf("|   ");
     }
-    printf("%s", node->node_name);
+    printf("+-- %s", node->node_name);
 
-    if (strcmp(node->node_name, "INUM") == 0 && node->inum_value != 0)
+    if (strcmp(node->node_name, "INUM") == 0)
     {
         printf(": %d", node->inum_value);
     }
-    else if (strcmp(node->node_name, "FNUM") == 0 && node->fnum_value != 0.0)
+    else if (strcmp(node->node_name, "FNUM") == 0)
     {
         printf(": %f", node->fnum_value);
     }
-    else if (strcmp(node->node_name, "CHARLIT") == 0 && node->char_value != '\0')
+    else if (strcmp(node->node_name, "CHARLIT") == 0)
     {
-        printf(": %c", node->char_value);
+        printf(": '%c'", node->char_value);
     }
     printf("\n");
 
