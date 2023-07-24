@@ -36,29 +36,33 @@ void print_ast_node(ASTNode *node, int indent)
     {
         return;
     }
+
     for (int i = 0; i < indent; i++)
     {
         printf("    ");
     }
     printf("%s", node->node_name);
-    if (strcmp(node->node_name, "INUM") == 0)
+
+    if (strcmp(node->node_name, "INUM") == 0 && node->inum_value != 0)
     {
         printf(": %d", node->inum_value);
     }
-    else if (strcmp(node->node_name, "FNUM") == 0)
+    else if (strcmp(node->node_name, "FNUM") == 0 && node->fnum_value != 0.0)
     {
         printf(": %f", node->fnum_value);
     }
-    else if (strcmp(node->node_name, "CHARLIT") == 0)
+    else if (strcmp(node->node_name, "CHARLIT") == 0 && node->char_value != '\0')
     {
         printf(": %c", node->char_value);
     }
     printf("\n");
+
     for (int i = 0; i < node->no_of_children; i++)
     {
-        print_ast_node(&node->child[i], indent + 1);
+        print_ast_node(&(node->child[i]), indent + 1);
     }
 }
+
 
 void print_ast(ASTNode *root)
 {

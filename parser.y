@@ -25,7 +25,7 @@
 %token <node_ptr> IDENTIFIER
 %token INT CHAR FLOAT PRINT ASSIGN PLUS MINUS SEMICOLON
 
-%type <node_ptr> program statements variable_declaration variable_type variable_initialization value expression ID print_statement
+%type <node_ptr> program statements statement variable_declaration variable_type variable_initialization value expression ID print_statement
 
 %left PLUS MINUS
 
@@ -34,13 +34,15 @@
 %%
 
 program:
-    program statements
+    statements
     {
         if (root == NULL)
         {
             root = create_node("program");
         }
-        root->child = $2;
+        root->no_of_children = 1;
+        root->child = (ASTNode *)malloc(root->no_of_children * sizeof(ASTNode));
+        root->child[0] = *$1;
         $$ = root;
     }
     | /* empty */
@@ -50,6 +52,25 @@ program:
     ;
 
 statements:
+    statements statement
+    {
+        $$ = create_node("statements");
+        $$->no_of_children = 2;
+        $$->child = (ASTNode *)malloc($$->no_of_children * sizeof(ASTNode));
+        $$->child[0] = *$1;
+        $$->child[1] = *$2;
+    }
+    | statement
+    {
+        $$ = create_node("statements");
+        $$->no_of_children = 1;
+        $$->child = (ASTNode *)malloc($$->no_of_children * sizeof(ASTNode));
+        $$->child[0] = *$1;
+    }
+    ;
+
+
+statement:
     variable_declaration
     | variable_initialization
     | print_statement
@@ -61,8 +82,12 @@ variable_declaration:
         ASTNode* id = create_child_node("ID", $1);
         ASTNode* type = $2;
         $$ = create_node("variable_declaration");
-        $$->child = id;
-        id->child = type;
+        $$->no_of_children = 1;
+        $$->child = (ASTNode *)malloc($$->no_of_children * sizeof(ASTNode));
+        $$->child[$$->no_of_children - 1] = *id;
+        $$->child = (ASTNode *)realloc($$->child, ($$->no_of_children + 1) * sizeof(ASTNode));
+        $$->child[$$->no_of_children] = *type;
+        $$->no_of_children++;
     }
     ;
 
@@ -88,11 +113,16 @@ variable_initialization:
         ASTNode* assignment = create_child_node("ASSIGN", $$);
         ASTNode* val = $3;
         $$ = create_node("variable_initialization");
-        $$->child = id;
-        id->child = assignment;
-        assignment->child = val;
+        $$->no_of_children = 2;
+        $$->child = (ASTNode *)malloc($$->no_of_children * sizeof(ASTNode));
+        $$->child[$$->no_of_children - 2] = *id;
+        $$->child[$$->no_of_children - 1] = *assignment;
+        $$->child = (ASTNode *)realloc($$->child, ($$->no_of_children + 1) * sizeof(ASTNode));
+        $$->child[$$->no_of_children] = *val;
+        $$->no_of_children++;
     }
     ;
+
 
 value:
     INUM
@@ -117,16 +147,18 @@ expression:
     expression PLUS expression
     {
         $$ = create_node("PLUS");
-        $$->child = $1;
-        $1 = create_child_node("PLUS", $$);
-        $1->child = $3;
+        $$->no_of_children = 2;
+        $$->child = (ASTNode *)malloc($$->no_of_children * sizeof(ASTNode));
+        $$->child[0] = *$1;
+        $$->child[1] = *$3;
     }
     | expression MINUS expression
     {
         $$ = create_node("MINUS");
-        $$->child = $1;
-        $1 = create_child_node("MINUS", $$);
-        $1->child = $3;
+        $$->no_of_children = 2;
+        $$->child = (ASTNode *)malloc($$->no_of_children * sizeof(ASTNode));
+        $$->child[0] = *$1;
+        $$->child[1] = *$3;
     }
     | ID
     {
