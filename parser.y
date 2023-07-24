@@ -59,8 +59,10 @@ variable_declaration:
     IDENTIFIER variable_type SEMICOLON
     {
         ASTNode* id = create_child_node("ID", $1);
-        ASTNode* type = create_child_node("type", $2);
+        ASTNode* type = $2;
         $$ = create_node("variable_declaration");
+        $$->child = id;
+        id->child = type;
     }
     ;
 
@@ -83,25 +85,29 @@ variable_initialization:
     IDENTIFIER ASSIGN value SEMICOLON
     {
         ASTNode* id = create_child_node("ID", $1);
-        ASTNode* value = create_child_node("value", $3);
+        ASTNode* assignment = create_child_node("ASSIGN", $$);
+        ASTNode* val = $3;
         $$ = create_node("variable_initialization");
+        $$->child = id;
+        id->child = assignment;
+        assignment->child = val;
     }
     ;
 
 value:
     INUM
     {
-        $$ = create_child_node("INUM", $$);
+        $$ = create_node("INUM");
         $$->inum_value = $1;
     }
     | FNUM
     {
-        $$ = create_child_node("FNUM", $$);
+        $$ = create_node("FNUM");
         $$->fnum_value = $1;
     }
     | CHARLIT
     {
-        $$ = create_child_node("CHARLIT", $$);
+        $$ = create_node("CHARLIT");
         $$->char_value = $1[0];
     }
     | expression
@@ -142,14 +148,13 @@ print_statement:
 
 %%
 
-
 void yyerror(const char* s) {
     fprintf(stderr, "%s\n", s);
 }
 
 int main() {
     yyparse();
-    print_ast(root); // Print the constructed AST
-    free_ast(root); // Free the memory used by the AST
+    print_ast(root);
+    free_ast(root);
     return 0;
 }
