@@ -23,7 +23,7 @@
 [a-zA-Z_][a-zA-Z0-9_]*           { yylval.str_value = strdup(yytext); return IDENTIFIER;  /* printf("IDENTIFIER");      */ }
 [0-9]+                           { yylval.inum_value = atoi(yytext); return INUM;         /* printf("INUM");            */ }
 [0-9]+"."[0-9]+                  { yylval.fnum_value = atof(yytext); return FNUM;         /* printf("FNUM");            */ }
-\'.\'                            { yylval.str_value = strdup(yytext); return CHARLIT;     /* printf("CHARLIT");         */ }
+\'.\'                            { yylval.char_value = yytext[1]; return CHARLIT;         /* printf("CHARLIT");         */ }
 "="                              { return ASSIGN;                                         /* printf("ASSIGN");          */ }
 "+"                              { return PLUS;                                           /* printf("PLUS");            */ }
 "-"                              { return MINUS;                                          /* printf("MINUS");           */ }
