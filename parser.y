@@ -21,8 +21,8 @@
 
 %token <inum_value> INUM
 %token <fnum_value> FNUM
-%token <str_value> CHARLIT
-%token <node_ptr> IDENTIFIER
+%token <char_value> CHARLIT
+%token <str_value> IDENTIFIER
 %token INT CHAR FLOAT PRINT ASSIGN PLUS MINUS SEMICOLON
 
 %type <node_ptr> program statements statement variable_declaration variable_type variable_initialization value expression ID print_statement
@@ -38,37 +38,36 @@ program:
     {
         if (root == NULL)
         {
-            root = create_node("program");
+            root = create_node("Program");
         }
         root->no_of_children = 1;
-        root->child = (ASTNode *)malloc(root->no_of_children * sizeof(ASTNode));
-        root->child[0] = *$1;
+        root->child = (ASTNode**)malloc(root->no_of_children * sizeof(ASTNode*));
+        root->child[0] = $1;
         $$ = root;
     }
     | /* empty */
     {
-        $$ = create_node("empty_program");
+        $$ = create_node("Empty_Program");
     }
     ;
 
 statements:
     statements statement
     {
-        $$ = create_node("statements");
+        $$ = create_node("Statements");
         $$->no_of_children = 2;
-        $$->child = (ASTNode *)malloc($$->no_of_children * sizeof(ASTNode));
-        $$->child[0] = *$1;
-        $$->child[1] = *$2;
+        $$->child = (ASTNode**)malloc($$->no_of_children * sizeof(ASTNode*));
+        $$->child[0] = $1;
+        $$->child[1] = $2;
     }
     | statement
     {
-        $$ = create_node("statements");
+        $$ = create_node("Statements");
         $$->no_of_children = 1;
-        $$->child = (ASTNode *)malloc($$->no_of_children * sizeof(ASTNode));
-        $$->child[0] = *$1;
+        $$->child = (ASTNode**)malloc($$->no_of_children * sizeof(ASTNode*));
+        $$->child[0] = $1;
     }
     ;
-
 
 statement:
     variable_declaration
@@ -79,66 +78,68 @@ statement:
 variable_declaration:
     IDENTIFIER variable_type SEMICOLON
     {
-        ASTNode* id = create_child_node("ID", $1);
+        ASTNode* id = create_node("ID");
+        id->str_value = $1;
         ASTNode* type = $2;
-        $$ = create_node("variable_declaration");
-        $$->no_of_children = 1;
-        $$->child = (ASTNode *)malloc($$->no_of_children * sizeof(ASTNode));
-        $$->child[$$->no_of_children - 1] = *id;
-        $$->child = (ASTNode *)realloc($$->child, ($$->no_of_children + 1) * sizeof(ASTNode));
-        $$->child[$$->no_of_children] = *type;
-        $$->no_of_children++;
+        $$ = create_node("Variable_Declaration");
+        $$->no_of_children = 2;
+        $$->child = (ASTNode**)malloc($$->no_of_children * sizeof(ASTNode*));
+        $$->child[0] = id;
+        $$->child[1] = type;
     }
     ;
 
 variable_type:
     INT
     {
-        $$ = create_node("int");
+        $$ = create_node("Type");
+        $$->str_value = "int";
     }
     | CHAR
     {
-        $$ = create_node("char");
+        $$ = create_node("Type");
+        $$->str_value = "char";
     }
     | FLOAT
     {
-        $$ = create_node("float");
+        $$ = create_node("Type");
+        $$->str_value = "float";
     }
     ;
 
 variable_initialization:
     IDENTIFIER ASSIGN value SEMICOLON
     {
-        ASTNode* id = create_child_node("ID", $1);
-        ASTNode* assignment = create_child_node("ASSIGN", $$);
+        ASTNode* id = create_node("ID");
+        id->str_value = $1;
+        ASTNode* assignment = create_node("ASSIGN");
         ASTNode* val = $3;
-        $$ = create_node("variable_initialization");
+        $$ = create_node("VariableInitialization");
         $$->no_of_children = 2;
-        $$->child = (ASTNode *)malloc($$->no_of_children * sizeof(ASTNode));
-        $$->child[$$->no_of_children - 2] = *id;
-        $$->child[$$->no_of_children - 1] = *assignment;
-        $$->child = (ASTNode *)realloc($$->child, ($$->no_of_children + 1) * sizeof(ASTNode));
-        $$->child[$$->no_of_children] = *val;
-        $$->no_of_children++;
+        $$->child = (ASTNode**)malloc($$->no_of_children * sizeof(ASTNode*));
+        $$->child[0] = id;
+        $$->child[1] = assignment;
+        assignment->no_of_children = 1;
+        assignment->child = (ASTNode**)malloc(assignment->no_of_children * sizeof(ASTNode*));
+        assignment->child[0] = val;
     }
     ;
-
 
 value:
     INUM
     {
-        $$ = create_node("INUM");
+        $$ = create_node("IntegerLiteral");
         $$->inum_value = $1;
     }
     | FNUM
     {
-        $$ = create_node("FNUM");
+        $$ = create_node("FloatLiteral");
         $$->fnum_value = $1;
     }
     | CHARLIT
     {
-        $$ = create_node("CHARLIT");
-        $$->char_value = $1[0];
+        $$ = create_node("CharacterLiteral");
+        $$->char_value = $1;
     }
     | expression
     ;
@@ -148,33 +149,38 @@ expression:
     {
         $$ = create_node("PLUS");
         $$->no_of_children = 2;
-        $$->child = (ASTNode *)malloc($$->no_of_children * sizeof(ASTNode));
-        $$->child[0] = *$1;
-        $$->child[1] = *$3;
+        $$->child = (ASTNode**)malloc($$->no_of_children * sizeof(ASTNode*));
+        $$->child[0] = $1;
+        $$->child[1] = $3;
     }
     | expression MINUS expression
     {
         $$ = create_node("MINUS");
         $$->no_of_children = 2;
-        $$->child = (ASTNode *)malloc($$->no_of_children * sizeof(ASTNode));
-        $$->child[0] = *$1;
-        $$->child[1] = *$3;
+        $$->child = (ASTNode**)malloc($$->no_of_children * sizeof(ASTNode*));
+        $$->child[0] = $1;
+        $$->child[1] = $3;
     }
     | ID
-    {
-        $$ = create_child_node("ID", $1);
-    }
     ;
 
 ID: 
     IDENTIFIER
+    {
+        $$ = create_node("ID");
+        $$->str_value = $1;
+    }
     ;
 
 print_statement:
     PRINT value SEMICOLON
     {
-        $$ = create_node("print_statement");
-        $$->child = $2;
+        ASTNode* print = create_node("PrintStatement");
+        $$ = create_node("Print");
+        $$->no_of_children = 2;
+        $$->child = (ASTNode**)malloc($$->no_of_children * sizeof(ASTNode*));
+        $$->child[0] = print;
+        $$->child[1] = $2;
     }
     ;
 
@@ -187,6 +193,6 @@ void yyerror(const char* s) {
 int main() {
     yyparse();
     print_ast(root);
-    free_ast(root);
+    //free_ast(root);
     return 0;
 }

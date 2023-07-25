@@ -5,15 +5,18 @@
 #include <string.h>
 #include <stdio.h>
 
-typedef struct ASTNode {
+struct ASTNode
+{
     char *node_name;
-    struct ASTNode *child;
     int inum_value;
     float fnum_value;
     char char_value;
     char *str_value;
+    struct ASTNode **child;
     int no_of_children;
-} ASTNode;
+};
+
+typedef struct ASTNode ASTNode;
 
 ASTNode *create_node(const char *node_name);
 ASTNode *create_child_node(const char *node_name, ASTNode *node);

@@ -13,21 +13,13 @@ ASTNode *create_node(const char *node_name)
     return node;
 }
 
-ASTNode *create_child_node(const char *node_name, ASTNode *node)
+ASTNode *create_child_node(const char *node_name, ASTNode *parent)
 {
-    if (node->child == NULL)
-    {
-        node->child = (ASTNode *)malloc(sizeof(ASTNode));
-        *(node->child) = *create_node(node_name);
-        node->no_of_children = 1;
-    }
-    else
-    {
-        node->no_of_children++;
-        node->child = (ASTNode *)realloc(node->child, node->no_of_children * sizeof(ASTNode));
-        node->child[node->no_of_children - 1] = *create_node(node_name);
-    }
-    return &(node->child[node->no_of_children - 1]);
+    ASTNode *node = create_node(node_name);
+    parent->no_of_children++;
+    parent->child = (ASTNode **)realloc(parent->child, parent->no_of_children * sizeof(ASTNode *));
+    parent->child[parent->no_of_children - 1] = node;
+    return node;
 }
 
 void print_ast_node(ASTNode *node, int indent)
@@ -43,26 +35,30 @@ void print_ast_node(ASTNode *node, int indent)
     }
     printf("+-- %s", node->node_name);
 
-    if (strcmp(node->node_name, "INUM") == 0)
+    if (strcmp(node->node_name, "ID") == 0 || strcmp(node->node_name, "Type") == 0)
+    {
+        printf(": %s", node->str_value);
+    }
+    else if (strcmp(node->node_name, "IntegerLiteral") == 0)
     {
         printf(": %d", node->inum_value);
     }
-    else if (strcmp(node->node_name, "FNUM") == 0)
+    else if (strcmp(node->node_name, "FloatLiteral") == 0)
     {
         printf(": %f", node->fnum_value);
     }
-    else if (strcmp(node->node_name, "CHARLIT") == 0)
+    else if (strcmp(node->node_name, "CharacterLiteral") == 0)
     {
-        printf(": '%c'", node->char_value);
+        printf(": %c", node->char_value);
     }
+
     printf("\n");
 
     for (int i = 0; i < node->no_of_children; i++)
     {
-        print_ast_node(&(node->child[i]), indent + 1);
+        print_ast_node(node->child[i], indent + 1);
     }
 }
-
 
 void print_ast(ASTNode *root)
 {
@@ -71,6 +67,7 @@ void print_ast(ASTNode *root)
         printf("AST is empty.\n");
         return;
     }
+    
     printf("Abstract Syntax Tree:\n");
     print_ast_node(root, 0);
 }
@@ -81,11 +78,19 @@ void free_ast(ASTNode *node)
     {
         return;
     }
+
     for (int i = 0; i < node->no_of_children; i++)
     {
-        free_ast(&node->child[i]);
+        free_ast(node->child[i]);
     }
+
     free(node->node_name);
     free(node->child);
+
+    if (node->str_value != NULL)
+    {
+        free(node->str_value);
+    }
+
     free(node);
 }
