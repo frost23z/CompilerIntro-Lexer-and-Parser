@@ -2,11 +2,16 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
+    #include <stdbool.h>
+    #include <setjmp.h>     /* Include the setjmp header for longjmp and jmp_buf */
     #include "ast.h"
 
-    void yyerror(const char* s);
-    extern int yylex(void);
+    int yyerror(const char* s);
+    jmp_buf error_buf;      /* Declare a jmp_buf to store the error jump location */
 
+    extern int yylex(void);
+    extern int yylineno;
+    
     struct ASTNode* root = NULL;
 %}
 
@@ -54,7 +59,7 @@ program:
 statements:
     statements statement
     {
-        $$ = create_node("Statements");
+        $$ = create_node("Statement");
         $$->no_of_children = 2;
         $$->child = (ASTNode**)malloc($$->no_of_children * sizeof(ASTNode*));
         $$->child[0] = $1;
@@ -62,7 +67,7 @@ statements:
     }
     | statement
     {
-        $$ = create_node("Statements");
+        $$ = create_node("Statement");
         $$->no_of_children = 1;
         $$->child = (ASTNode**)malloc($$->no_of_children * sizeof(ASTNode*));
         $$->child[0] = $1;
@@ -186,13 +191,19 @@ print_statement:
 
 %%
 
-void yyerror(const char* s) {
-    fprintf(stderr, "%s\n", s);
+int yyerror(const char* s)
+{
+    fprintf(stderr, "%s in line %d\n", s, yylineno);
+    longjmp(error_buf, 1);  /* Perform a non-local jump back to the main function. */
 }
 
-int main() {
-    yyparse();
-    print_ast(root);
-    //free_ast(root);
+int main()
+{
+    if (setjmp(error_buf) == 0)
+    {
+        yyparse();          /* Continue parsing if no errors occurred. */
+        print_ast(root);
+        //free_ast(root);
+    }
     return 0;
 }
