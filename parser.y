@@ -4,6 +4,7 @@
     #include <string.h>
     #include <stdbool.h>
     #include <setjmp.h>     /* Include the setjmp header for longjmp and jmp_buf */
+    #include "symbol_table.h"
     #include "ast.h"
 
     int yyerror(const char* s);
@@ -91,6 +92,15 @@ variable_declaration:
         $$->child = (ASTNode**)malloc($$->no_of_children * sizeof(ASTNode*));
         $$->child[0] = id;
         $$->child[1] = type;
+
+        // Check if the variable is already declared in the symbol table
+        if (symbol_exists($1))
+        {
+            fprintf(stderr, "Error: Variable '%s' already declared.\n", $1);
+            longjmp(error_buf, 1);
+        }
+        // Insert the variable into the symbol table with a default value of 0
+        insert_symbol($1, yylineno);
     }
     ;
 
@@ -127,6 +137,13 @@ variable_initialization:
         assignment->no_of_children = 1;
         assignment->child = (ASTNode**)malloc(assignment->no_of_children * sizeof(ASTNode*));
         assignment->child[0] = val;
+
+        // Check if the variable is already declared in the symbol table
+        if (!symbol_exists($1))
+        {
+            fprintf(stderr, "Error: Variable '%s' not declared before initialization.\n", $1);
+            longjmp(error_buf, 1);
+        }
     }
     ;
 
@@ -199,11 +216,14 @@ int yyerror(const char* s)
 
 int main()
 {
+    init_symbol_table(); // Initialize the symbol table before parsing
     if (setjmp(error_buf) == 0)
     {
         yyparse();          /* Continue parsing if no errors occurred. */
         print_ast(root);
+        //print_symbol_table();
         //free_ast(root);
     }
+    free_symbol_table(); // Free the memory used by the symbol table after parsing
     return 0;
 }
