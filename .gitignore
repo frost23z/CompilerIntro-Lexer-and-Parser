@@ -1,0 +1,9 @@
+symbol_table.o
+parser.tab.o
+parser.tab.h
+parser.tab.c
+parser.output
+lex.yy.c
+a
+ast.o
+lex.yy.o
