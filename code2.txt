@@ -1,0 +1,4 @@
+a int;
+b int;
+b int;
+d int;
