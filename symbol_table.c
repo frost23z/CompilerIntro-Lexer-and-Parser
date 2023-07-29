@@ -26,6 +26,13 @@ bool symbol_exists(const char *name)
     return entry != NULL;
 }
 
+int get_symbol_line(const char *name)
+{
+    struct SymbolEntry *entry;
+    HASH_FIND_STR(symbol_table, name, entry);
+    return entry->lineno;
+}
+
 void print_symbol_table()
 {
     struct SymbolEntry *entry;

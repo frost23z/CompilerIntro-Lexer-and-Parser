@@ -96,7 +96,7 @@ variable_declaration:
         // Check if the variable is already declared in the symbol table
         if (symbol_exists($1))
         {
-            fprintf(stderr, "Error: Variable '%s' already declared.\n", $1);
+            fprintf(stderr, "Error: variable '%s' declared in line:%d was already declared in line:%d\n", $1, yylineno, get_symbol_line($1));
             longjmp(error_buf, 1);
         }
         // Insert the variable into the symbol table with a default value of 0
@@ -141,7 +141,7 @@ variable_initialization:
         // Check if the variable is already declared in the symbol table
         if (!symbol_exists($1))
         {
-            fprintf(stderr, "Error: Variable '%s' not declared before initialization.\n", $1);
+            fprintf(stderr, "Error: variable '%s' in line:%d was not declared\n", $1, yylineno);
             longjmp(error_buf, 1);
         }
     }
@@ -210,7 +210,7 @@ print_statement:
 
 int yyerror(const char* s)
 {
-    fprintf(stderr, "%s in line %d\n", s, yylineno);
+    fprintf(stderr, "Error: %s in line:%d\n", s, yylineno);
     longjmp(error_buf, 1);  /* Perform a non-local jump back to the main function. */
 }
 

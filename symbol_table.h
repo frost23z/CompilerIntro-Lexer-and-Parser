@@ -17,6 +17,8 @@ void insert_symbol(const char *name, int lineno);
 
 bool symbol_exists(const char *name);
 
+int get_symbol_line(const char *name);
+
 void print_symbol_table();
 
 void free_symbol_table();
