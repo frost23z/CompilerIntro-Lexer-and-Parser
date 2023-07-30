@@ -28,11 +28,12 @@ void print_ast_node(ASTNode *node, int indent)
     {
         return;
     }
-
+    
     for (int i = 0; i < indent; i++)
     {
         printf("|   ");
     }
+
     printf("+-- %s", node->node_name);
 
     if (strcmp(node->node_name, "ID") == 0 || strcmp(node->node_name, "Type") == 0)
@@ -67,8 +68,8 @@ void print_ast(ASTNode *root)
         printf("AST is empty.\n");
         return;
     }
-    
-    printf("Abstract Syntax Tree:\n");
+
+    printf("\t\t\tAbstract Syntax Tree:\n\n");
     print_ast_node(root, 0);
 }
 
