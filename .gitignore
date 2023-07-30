@@ -7,3 +7,5 @@ lex.yy.c
 a
 ast.o
 lex.yy.o
+report.docx
+report.pdf
