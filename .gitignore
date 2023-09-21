@@ -9,3 +9,5 @@ ast.o
 lex.yy.o
 report.docx
 report.pdf
+final_report.pdf
+final_report.docx

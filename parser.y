@@ -7,34 +7,43 @@
     #include "symbol_table.h"
     #include "ast.h"
 
+    /* Declare error-handling function */
     int yyerror(const char* s);
-    jmp_buf error_buf;      /* Declare a jmp_buf to store the error jump location */
 
+    /* Declare a jump buffer for error handling */
+    jmp_buf error_buf;
+
+    /* Declare external lexer and line number variables */
     extern int yylex(void);
     extern int yylineno;
     
+    /* Initialize the root of the AST as NULL */
     struct ASTNode* root = NULL;
 %}
 
 %union
 {
-    int inum_value;
-    float fnum_value;
-    char char_value;
-    char* str_value;
-    struct ASTNode* node_ptr;
+    int inum_value;                  /* Integer value */
+    float fnum_value;                /* Float value */
+    char char_value;                 /* Character value */
+    char* str_value;                 /* String (identifier) value */
+    struct ASTNode* node_ptr;        /* Pointer to an AST node */
 }
 
-%token <inum_value> INUM
-%token <fnum_value> FNUM
-%token <char_value> CHARLIT
-%token <str_value> IDENTIFIER
-%token INT CHAR FLOAT PRINT ASSIGN PLUS MINUS SEMICOLON
+/* Define the token types */
+%token <inum_value> INUM             /* Integer literal */
+%token <fnum_value> FNUM             /* Float literal */
+%token <char_value> CHARLIT          /* Character literal */
+%token <str_value> IDENTIFIER        /* Identifier token */
+%token INT CHAR FLOAT PRINT          /* Keywords and types */
+%token ASSIGN PLUS MINUS SEMICOLON   /* Operators and punctuation */
 
 %type <node_ptr> program statements statement variable_declaration variable_type variable_initialization value expression ID print_statement
 
+/* Define the precedence of the operators */
 %left PLUS MINUS
 
+/* Define the start symbol */
 %start program
 
 %%
@@ -53,26 +62,35 @@ program:
     }
     | /* empty */
     {
-        $$ = create_node("Empty_Program");
+        root = create_node("Empty_Program");
+        $$ = root;
     }
     ;
 
 statements:
-    statements statement
+    statement
     {
-        $$ = create_node("Statement");
-        $$->no_of_children = 2;
-        $$->child = (ASTNode**)malloc($$->no_of_children * sizeof(ASTNode*));
-        $$->child[0] = $1;
-        $$->child[1] = $2;
-    }
-    | statement
-    {
-        $$ = create_node("Statement");
+        $$ = create_node("Statements");
         $$->no_of_children = 1;
         $$->child = (ASTNode**)malloc($$->no_of_children * sizeof(ASTNode*));
         $$->child[0] = $1;
     }
+    |
+    statements statement
+    {
+        /* Create or update the "Statements" node and increment the number of children */
+        if ($$) {
+            $$->no_of_children++;
+            $$->child = (ASTNode**)realloc($$->child, $$->no_of_children * sizeof(ASTNode*));
+            $$->child[$$->no_of_children - 1] = $2; // Add the new statement as a child
+        } else {
+            /* If $$ is NULL, create a new "Statements" node */
+            $$ = create_node("Statements");
+            $$->no_of_children = 1;
+            $$->child = (ASTNode**)malloc(sizeof(ASTNode*));
+            $$->child[0] = $2; /* Add the first statement as a child */
+        }
+    } 
     ;
 
 statement:
@@ -93,13 +111,13 @@ variable_declaration:
         $$->child[0] = id;
         $$->child[1] = type;
 
-        // Check if the variable is already declared in the symbol table
+        /* Check if the variable is already declared in the symbol table */
         if (symbol_exists($1))
         {
             fprintf(stderr, "Error: variable '%s' declared in line:%d was already declared in line:%d\n", $1, yylineno, get_symbol_line($1));
             longjmp(error_buf, 1);
         }
-        // Insert the variable into the symbol table with a default value of 0
+        /* Insert the variable into the symbol table with a default value of 0 */
         insert_symbol($1, yylineno);
     }
     ;
@@ -138,7 +156,7 @@ variable_initialization:
         assignment->child = (ASTNode**)malloc(assignment->no_of_children * sizeof(ASTNode*));
         assignment->child[0] = val;
 
-        // Check if the variable is already declared in the symbol table
+        /* Check if the variable is already declared in the symbol table */
         if (!symbol_exists($1))
         {
             fprintf(stderr, "Error: variable '%s' in line:%d was not declared\n", $1, yylineno);
@@ -216,14 +234,13 @@ int yyerror(const char* s)
 
 int main()
 {
-    init_symbol_table(); // Initialize the symbol table before parsing
+    init_symbol_table();    /* Initialize the symbol table before parsing */
     if (setjmp(error_buf) == 0)
     {
         yyparse();          /* Continue parsing if no errors occurred. */
-        print_ast(root);
-        //print_symbol_table();
-        //free_ast(root);
+        print_ast(root);    /* Print the Abstract Syntax Tree */
+        free_ast(root);     /* Free memory associated with the AST */
     }
-    free_symbol_table(); // Free the memory used by the symbol table after parsing
+    free_symbol_table();    /* Free the memory used by the symbol table after parsing */
     return 0;
 }
