@@ -3,6 +3,11 @@
 ASTNode *create_node(const char *node_name)
 {
     ASTNode *node = (ASTNode *)malloc(sizeof(ASTNode));
+    if (node == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE); /* Handle memory allocation failure */
+    }
     node->node_name = strdup(node_name);
     node->child = NULL;
     node->inum_value = 0;
@@ -28,7 +33,7 @@ void print_ast_node(ASTNode *node, int indent)
     {
         return;
     }
-    
+
     for (int i = 0; i < indent; i++)
     {
         printf("|   ");
@@ -68,7 +73,11 @@ void print_ast(ASTNode *root)
         printf("AST is empty.\n");
         return;
     }
-
+    if (strcmp(root->node_name, "Empty_Program") == 0)
+    {
+        printf("Empty Program: No Statements\n");
+        return;
+    }
     printf("\t\t\tAbstract Syntax Tree:\n\n");
     print_ast_node(root, 0);
 }
@@ -80,18 +89,21 @@ void free_ast(ASTNode *node)
         return;
     }
 
+    // Free child nodes
     for (int i = 0; i < node->no_of_children; i++)
     {
         free_ast(node->child[i]);
     }
 
-    free(node->node_name);
-    free(node->child);
-
+    // Check if str_value is not NULL before freeing
     if (node->str_value != NULL)
     {
         free(node->str_value);
     }
 
+    // Free other allocated memory
+    free(node->node_name);
+
+    // Finally, free the node itself
     free(node);
 }

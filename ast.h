@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 
+/* AST node structure definition */
 struct ASTNode
 {
     char *node_name;
